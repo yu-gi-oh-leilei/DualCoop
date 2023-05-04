@@ -1,0 +1,113 @@
+DATA:
+  dataset_dir: '/media/data2/MLICdataset/'
+  dataname: 'coco14partial'
+  num_workers: 8
+  prob: 0.5
+  num_class: 80
+  classnames: ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle',
+                 'bus', 'car', 'cat', 'chair', 'cow',
+                 'diningtable', 'dog', 'horse', 'motorbike', 'person',
+                 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
+  
+  TRANSFORM:
+    img_size: 448
+    crop: False
+    cutout: True
+    length: 224
+    cut_fact: 0.5
+    orid_norm: False
+    remove_norm: False
+    n_holes: -1
+
+
+INPUT:
+  SIZE: (448, 448)
+  INTERPOLATION: "bicubic"
+  PIXEL_MEAN: [0.48145466, 0.4578275, 0.40821073]
+  PIXEL_STD: [0.26862954, 0.26130258, 0.27577711]
+  TRANSFORMS: ["random_resized_crop", "MLC_Policy", "random_flip", "normalize"]
+  TRANSFORMS_TEST: ["resize", "normalize"]
+  random_resized_crop_scale: (0.5, 1.0)
+
+
+MODEL:
+  arch: 'Baseline-R101-448'
+  use_BN: False
+  BACKBONE:
+    backbone: 'resnet101'
+    pretrained: True
+    frozen_backbone: False
+  TRANSFORMER:
+    enc_layers: 1
+    dec_layers: 2
+    dim_feedforward: 8192
+    hidden_dim: 2048
+    dropout: 0.1
+    nheads: 4
+    pre_norm: False
+    position_embedding: 'v2'
+    keep_other_self_attn_dec: False
+    keep_first_self_attn_dec: False
+    keep_input_proj: False
+  CLASSIFIER:
+    num_class: 80
+
+
+LOSS:
+  loss_mode: bce
+  loss_dev: -1
+  ASL:
+    eps: 1e-05
+    dtgfl: True
+    gamma_pos: 0.0
+    gamma_neg: 2.0
+    loss_clip: 0.0
+
+
+OPTIMIZER:
+  optim: 'AdamW'
+  lr_scheduler: 'OneCycleLR'
+  pattern_parameters: 'single_lr'
+  momentum: 0.9
+  warmup_epoch: -1
+  warmup_scheduler: False
+  epoch_step: [10, 20]
+  batch_size: 64
+  lr: 5e-05
+  lrp: 0.1
+  weight_decay: 5e-3
+  # warmup_scheduler: True
+  # warmup_type: 'constant' #'linear'
+  # warmup_epoch: 1
+  # warmup_lr: 0.0005
+
+
+DDP:
+  world_size: 1
+  rank: 0
+  dist_url: 'tcp://127.0.0.1:3718'
+  local_rank: 1
+  # gpus: 0,1
+
+TRAIN:
+  seed: 1
+  amp: True
+  early_stop: True
+  kill_stop: False
+  device: 'CUDA'
+  start_epoch: 0
+  epochs: 80
+  ema_decay: 0.9998
+  ema_epoch: 0
+  evaluate: False
+
+INPUT_OUTPUT:
+  output: ''
+  resume: ''
+  resume_omit: []
+  print_freq: 400
+  out_aps: False
+
+EVAL:
+  val_interval: 1
+
